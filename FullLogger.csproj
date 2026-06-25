@@ -1,0 +1,77 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>FullLogger</AssemblyName>
+    <RootNamespace>FullLogger</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <Version>1.2.2</Version>
+    <AssemblyVersion>1.2.2.0</AssemblyVersion>
+    <FileVersion>1.2.2.0</FileVersion>
+    <Product>Full Logger</Product>
+    <Description>Exhaustive client-side session logging with rotating files</Description>
+    <Charset>utf-8</Charset>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TarkovDir Condition="'$(TarkovDir)' == '' AND '$(EFT_GAME_ROOT)' != ''">$(EFT_GAME_ROOT)\</TarkovDir>
+    <TarkovDir Condition="'$(TarkovDir)' == ''">U:\Games\EscapeFromTarkov4\</TarkovDir>
+    <CursorModdingDir>$(TarkovDir)CURSORAIMODING\</CursorModdingDir>
+    <TarkovManagedDir>$(TarkovDir)EscapeFromTarkov_Data\Managed\</TarkovManagedDir>
+    <TarkovBepInExCoreDir>$(TarkovDir)BepInEx\core\</TarkovBepInExCoreDir>
+    <GameRefsDir>$(CursorModdingDir)game-assembly-base\05-reference-dlls\</GameRefsDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>$(TarkovBepInExCoreDir)0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="BepInEx">
+      <HintPath>$(TarkovBepInExCoreDir)BepInEx.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(GameRefsDir)Assembly-CSharp-remapped.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(TarkovManagedDir)UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(TarkovManagedDir)UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="src\FullLoggerEnvironment.cs" />
+    <Compile Include="src\FikaSessionGuard.cs" />
+    <Compile Include="src\PluginInfo.cs" />
+    <Compile Include="src\PluginCore.cs" />
+    <Compile Include="src\SessionBootstrap.cs" />
+    <Compile Include="src\Logging\LogCategories.cs" />
+    <Compile Include="src\Logging\LogCaptureCoordinator.cs" />
+    <Compile Include="src\Logging\SessionSummaryWriter.cs" />
+    <Compile Include="src\Logging\SessionFileLogger.cs" />
+    <Compile Include="src\Logging\TraceFormatter.cs" />
+    <Compile Include="src\Logging\EnvironmentSnapshot.cs" />
+    <Compile Include="src\Hooks\BackgroundLogTailer.cs" />
+    <Compile Include="src\Hooks\LogOutputMirror.cs" />
+    <Compile Include="src\Hooks\GameLogMirror.cs" />
+    <Compile Include="src\Hooks\UnityLogSink.cs" />
+    <Compile Include="src\Patches\BepInExLogPatches.cs" />
+    <Compile Include="src\Patches\HarmonyAuditPatches.cs" />
+    <Compile Include="src\Tracing\HarmonyAuditSuppressor.cs" />
+    <Compile Include="src\Tracing\DynamicMethodTracer.cs" />
+    <Compile Include="src\Tracing\GameEventTracer.cs" />
+  </ItemGroup>
+
+</Project>
