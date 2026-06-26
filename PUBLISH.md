@@ -17,7 +17,7 @@ git init
 git add .
 git commit -m "Source backup Full Logger v1.2.2"
 git branch -M main
-git remote add origin https://github.com/${GITHUB_OWNER:-YOUR_GITHUB_USER}/FullLogger.git
+git remote add origin https://github.com/kabzon93region/FullLogger.git
 git push -u origin main
 ```
 
