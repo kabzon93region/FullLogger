@@ -1,52 +1,112 @@
 using System;
 using System.IO;
 using System.Linq;
+using BepInEx;
 using FullLogger.Logging;
 using UnityEngine;
 
 namespace FullLogger.Hooks
 {
     /// <summary>
-    /// Registers BSG Logs/**/*.log with the background tailer.
+    /// Registers BSG Logs/**/*.log with the background tailer. Retries when folder appears after raid load.
     /// </summary>
     internal sealed class GameLogMirror : IDisposable
     {
-        private FileSystemWatcher _watcher;
+        private FileSystemWatcher _rootWatcher;
+        private FileSystemWatcher _sessionWatcher;
+        private string _logsRoot;
         private string _watchedDir;
         private bool _disposed;
 
+        internal bool IsAttached => !string.IsNullOrEmpty(_watchedDir);
+
         internal void Start()
         {
-            var logsRoot = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
-            if (!Directory.Exists(logsRoot))
+            _logsRoot = ResolveLogsRoot();
+            TryAttachLatestSession(forceLog: true);
+
+            if (string.IsNullOrEmpty(_logsRoot) || !Directory.Exists(_logsRoot))
             {
-                SessionBootstrap.Write(LogCategories.GameLog, "WARN", $"Game logs folder not found: {logsRoot}");
+                SessionBootstrap.Write(LogCategories.GameLog, "WARN",
+                    $"Game logs root not found yet ({_logsRoot ?? "null"}) — will retry during raid.");
+                TryWatchLogsRoot();
                 return;
             }
 
-            var latestSession = Directory.GetDirectories(logsRoot)
+            TryWatchLogsRoot();
+        }
+
+        internal bool TryAttachLatestSession(bool forceLog)
+        {
+            if (_disposed)
+            {
+                return false;
+            }
+
+            _logsRoot ??= ResolveLogsRoot();
+            if (string.IsNullOrEmpty(_logsRoot) || !Directory.Exists(_logsRoot))
+            {
+                return false;
+            }
+
+            var latestSession = Directory.GetDirectories(_logsRoot)
                 .OrderByDescending(Directory.GetLastWriteTimeUtc)
                 .FirstOrDefault();
 
             if (string.IsNullOrEmpty(latestSession))
             {
-                return;
+                return false;
             }
 
+            if (string.Equals(_watchedDir, latestSession, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            DetachSessionWatcher();
             _watchedDir = latestSession;
             RegisterAllLogs(latestSession);
 
-            _watcher = new FileSystemWatcher(latestSession)
+            _sessionWatcher = new FileSystemWatcher(latestSession)
             {
                 IncludeSubdirectories = true,
                 NotifyFilter = NotifyFilters.Size | NotifyFilters.LastWrite | NotifyFilters.FileName
             };
-            _watcher.Created += OnFsEvent;
-            _watcher.Changed += OnFsEvent;
-            _watcher.EnableRaisingEvents = true;
+            _sessionWatcher.Created += OnFsEvent;
+            _sessionWatcher.Changed += OnFsEvent;
+            _sessionWatcher.EnableRaisingEvents = true;
 
-            SessionBootstrap.Write(LogCategories.GameLog, "INFO",
-                $"Game log mirror: background tail watching {latestSession}");
+            if (forceLog)
+            {
+                SessionBootstrap.Write(LogCategories.GameLog, "INFO",
+                    $"Game log mirror attached: {latestSession}");
+            }
+
+            return true;
+        }
+
+        private void TryWatchLogsRoot()
+        {
+            if (string.IsNullOrEmpty(_logsRoot) || !Directory.Exists(_logsRoot) || _rootWatcher != null)
+            {
+                return;
+            }
+
+            _rootWatcher = new FileSystemWatcher(_logsRoot)
+            {
+                IncludeSubdirectories = false,
+                NotifyFilter = NotifyFilters.DirectoryName | NotifyFilters.LastWrite
+            };
+            _rootWatcher.Created += OnRootDirCreated;
+            _rootWatcher.EnableRaisingEvents = true;
+        }
+
+        private void OnRootDirCreated(object sender, FileSystemEventArgs e)
+        {
+            if (Directory.Exists(e.FullPath))
+            {
+                TryAttachLatestSession(forceLog: true);
+            }
         }
 
         private void OnFsEvent(object sender, FileSystemEventArgs e)
@@ -87,6 +147,48 @@ namespace FullLogger.Hooks
                 decorateLine: line => $"[{relative}] {line}");
         }
 
+        private static string ResolveLogsRoot()
+        {
+            var candidates = new[]
+            {
+                Path.Combine(Directory.GetCurrentDirectory(), "Logs"),
+                Path.Combine(Application.dataPath, "..", "Logs"),
+                Path.Combine(BepInEx.Paths.GameRootPath ?? Directory.GetCurrentDirectory(), "Logs")
+            };
+
+            foreach (var candidate in candidates)
+            {
+                try
+                {
+                    var full = Path.GetFullPath(candidate);
+                    if (Directory.Exists(full))
+                    {
+                        return full;
+                    }
+                }
+                catch
+                {
+                    // try next
+                }
+            }
+
+            return Path.Combine(Directory.GetCurrentDirectory(), "Logs");
+        }
+
+        private void DetachSessionWatcher()
+        {
+            if (_sessionWatcher == null)
+            {
+                return;
+            }
+
+            _sessionWatcher.EnableRaisingEvents = false;
+            _sessionWatcher.Created -= OnFsEvent;
+            _sessionWatcher.Changed -= OnFsEvent;
+            _sessionWatcher.Dispose();
+            _sessionWatcher = null;
+        }
+
         public void Dispose()
         {
             if (_disposed)
@@ -95,12 +197,14 @@ namespace FullLogger.Hooks
             }
 
             _disposed = true;
-            if (_watcher != null)
+            DetachSessionWatcher();
+
+            if (_rootWatcher != null)
             {
-                _watcher.EnableRaisingEvents = false;
-                _watcher.Created -= OnFsEvent;
-                _watcher.Changed -= OnFsEvent;
-                _watcher.Dispose();
+                _rootWatcher.EnableRaisingEvents = false;
+                _rootWatcher.Created -= OnRootDirCreated;
+                _rootWatcher.Dispose();
+                _rootWatcher = null;
             }
         }
     }

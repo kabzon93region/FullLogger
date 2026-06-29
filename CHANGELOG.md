@@ -1,3 +1,27 @@
+## 1.4.1 — 2026-06-28
+
+- **Настройки на лету**: `General.Enabled=false` останавливает tail/mirror/monitoring без рестарта; `MirrorLogOutputFile`, `LogOutputCaptureMode`, `TailPollIntervalMs`, `MirrorGameLogs` — тоже.
+- **Фильтр LogOutput** (`LogOutputCaptureMode`): по умолчанию `2=ErrorsAndKeywords` — не копирует весь BOT_RECONCILE спам из 700k+ строк LogOutput.
+- **Лёгкие дефолты**: tail 1000 мс (было 250), `MirrorGameLogs=false`, `TraceInventoryOps=false`, `TraceCombatRicochet=false`, `RaidSnapshotIntervalSec=30`, `TraceExtractEvents=false`.
+- Harmony-патчи (inventory/ricochet/extract) **нельзя снять без рестарта** — но postfix/prefix проверяют флаги на каждый вызов (выкл = нулевая нагрузка).
+- В LogOutput при смене конфига пишется `[FULL_LOGGER] Active profile (...)` — видно, что настройка применилась.
+
+## 1.4.0 — 2026-06-28
+
+- **In-raid monitoring по умолчанию** (`RAID`): `[RAID_START]` / `[RAID_END]`, `[RAID_SNAPSHOT]` каждые 10 сек (loc, fps, health, Fika net).
+- **GameLogMirror retry**: повторный поиск `Logs/` при входе в рейд + watcher на новые сессии BSG (исправлен «пустой» session_summary).
+- **Extract trace** (`EXTRACT`): Harmony на Fika `CoopHandler.ProcessQuitting` — F8 и причина блокировки.
+- **session_summary.txt**: таблица «Lines by category» (видно RAID/BEPINEX_FILE/GAME_LOG даже без ERROR).
+- Дефолты: `RuntimePollIntervalSeconds=15`, `FikaNetLogIntervalSec=10`, `RaidSnapshotIntervalSec=10`.
+- Нагрузка: только лёгкие снимки + фоновый tail (без DynamicTrace / MirrorBepInExLog).
+
+## 1.3.0 — 2026-06-28
+
+- **Metabolism watchdog** (`METABOLISM` / `METABOLISM_STUCK`): детект еды/воды на max без drain.
+- **Auto-resync**: re-enable metabolism (`Boolean_0`) + probe `ChangeEnergy/Hydration`.
+- **Fika network stats** (`FIKA_NET`): периодический RTT / packet loss / ping.
+- Модули: `Monitoring/MetabolismSampler`, `MetabolismWatchdogBehaviour`, `FikaNetworkStatsMonitor`.
+
 ## 1.2.2 — 2026-06-25
 
 - **Pack/deploy**: flat layout `BepInEx/plugins/FullLogger.dll` (без `plugins/FullLogger/`)

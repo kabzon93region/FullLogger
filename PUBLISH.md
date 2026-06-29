@@ -2,7 +2,7 @@
 
 **Статус:** `ready`  
 **GitHub:** Release + zip  
-**Версия:** `1.2.2`  
+**Версия:** `1.4.1`  
 **Deployment:** `(universal)`
 
 ## 1. Подготовка (уже сделано этим скриптом)
@@ -15,7 +15,7 @@
 cd github-repos/FullLogger
 git init
 git add .
-git commit -m "Source backup Full Logger v1.2.2"
+git commit -m "Source backup Full Logger v1.4.1"
 git branch -M main
 git remote add origin https://github.com/kabzon93region/FullLogger.git
 git push -u origin main
@@ -31,11 +31,11 @@ python CURSORAIMODING/tools/publish/publish_github_release.py FullLogger --creat
 
 Прикрепить zip (только игровые файлы, без INSTALL.md):
 
-`\\Servant\data\Games\EscapeFromTarkov4\CURSORAIMODING\releases\FullLogger_(universal)_v1.2.2_2026-06-27.zip`
+`\\Servant\data\Games\EscapeFromTarkov4\CURSORAIMODING\releases\FullLogger_(universal)_v1.4.1_2026-06-29.zip`
 
 ```powershell
-gh release create v1.2.2 "\\Servant\data\Games\EscapeFromTarkov4\CURSORAIMODING\releases\FullLogger_(universal)_v1.2.2_2026-06-27.zip" ^
-  --title "Full Logger v1.2.2" ^
+gh release create v1.4.1 "\\Servant\data\Games\EscapeFromTarkov4\CURSORAIMODING\releases\FullLogger_(universal)_v1.4.1_2026-06-29.zip" ^
+  --title "Full Logger v1.4.1" ^
   --notes-file CHANGELOG.md
 ```
 

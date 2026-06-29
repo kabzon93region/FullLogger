@@ -7,9 +7,9 @@
     <LangVersion>latest</LangVersion>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <Version>1.2.2</Version>
-    <AssemblyVersion>1.2.2.0</AssemblyVersion>
-    <FileVersion>1.2.2.0</FileVersion>
+    <Version>1.4.1</Version>
+    <AssemblyVersion>1.4.1.0</AssemblyVersion>
+    <FileVersion>1.4.1.0</FileVersion>
     <Product>Full Logger</Product>
     <Description>Exhaustive client-side session logging with rotating files</Description>
     <Charset>utf-8</Charset>
@@ -31,6 +31,14 @@
     </Reference>
     <Reference Include="BepInEx">
       <HintPath>$(TarkovBepInExCoreDir)BepInEx.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Comfort">
+      <HintPath>$(TarkovManagedDir)Comfort.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Comfort.Unity">
+      <HintPath>$(TarkovManagedDir)Comfort.Unity.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="Assembly-CSharp">
@@ -56,8 +64,10 @@
     <Compile Include="src\FikaSessionGuard.cs" />
     <Compile Include="src\PluginInfo.cs" />
     <Compile Include="src\PluginCore.cs" />
+    <Compile Include="src\FullLoggerCaptureController.cs" />
     <Compile Include="src\SessionBootstrap.cs" />
     <Compile Include="src\Logging\LogCategories.cs" />
+    <Compile Include="src\Logging\LogOutputCaptureFilter.cs" />
     <Compile Include="src\Logging\LogCaptureCoordinator.cs" />
     <Compile Include="src\Logging\SessionSummaryWriter.cs" />
     <Compile Include="src\Logging\SessionFileLogger.cs" />
@@ -72,6 +82,13 @@
     <Compile Include="src\Tracing\HarmonyAuditSuppressor.cs" />
     <Compile Include="src\Tracing\DynamicMethodTracer.cs" />
     <Compile Include="src\Tracing\GameEventTracer.cs" />
+    <Compile Include="src\Monitoring\MetabolismReflection.cs" />
+    <Compile Include="src\Monitoring\MetabolismSampler.cs" />
+    <Compile Include="src\Monitoring\MetabolismWatchdogBehaviour.cs" />
+    <Compile Include="src\Monitoring\FikaNetworkStatsMonitor.cs" />
+    <Compile Include="src\Monitoring\RaidStateDetector.cs" />
+    <Compile Include="src\Monitoring\RaidSessionMonitorBehaviour.cs" />
+    <Compile Include="src\Tracing\RaidEventTracer.cs" />
   </ItemGroup>
 
 </Project>

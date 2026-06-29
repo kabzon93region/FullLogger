@@ -25,9 +25,10 @@ namespace FullLogger.Hooks
 
         private readonly object _sync = new object();
         private readonly List<TailTarget> _targets = new List<TailTarget>();
-        private readonly int _pollIntervalMs;
         private Thread _worker;
         private volatile bool _disposed;
+        private volatile bool _paused;
+        private volatile int _pollIntervalMs;
 
         internal static BackgroundLogTailer Instance =>
             _instance ?? throw new InvalidOperationException("BackgroundLogTailer not started");
@@ -47,6 +48,16 @@ namespace FullLogger.Hooks
         private BackgroundLogTailer(int pollIntervalMs)
         {
             _pollIntervalMs = Math.Max(50, pollIntervalMs);
+        }
+
+        internal void SetPollIntervalMs(int pollIntervalMs)
+        {
+            _pollIntervalMs = Math.Max(50, pollIntervalMs);
+        }
+
+        internal void Pause(bool paused)
+        {
+            _paused = paused;
         }
 
         private void StartWorker()
@@ -108,25 +119,28 @@ namespace FullLogger.Hooks
         {
             while (!_disposed)
             {
-                TailTarget[] snapshot;
-                lock (_sync)
+                if (!_paused)
                 {
-                    snapshot = _targets.ToArray();
+                    TailTarget[] snapshot;
+                    lock (_sync)
+                    {
+                        snapshot = _targets.ToArray();
+                    }
+
+                    foreach (var target in snapshot)
+                    {
+                        try
+                        {
+                            TailFile(target);
+                        }
+                        catch
+                        {
+                            // retry next tick
+                        }
+                    }
                 }
 
-                foreach (var target in snapshot)
-                {
-                    try
-                    {
-                        TailFile(target);
-                    }
-                    catch
-                    {
-                        // retry next tick
-                    }
-                }
-
-                Thread.Sleep(_pollIntervalMs);
+                Thread.Sleep(Math.Max(50, _pollIntervalMs));
             }
         }
 
@@ -191,6 +205,16 @@ namespace FullLogger.Hooks
             var normalized = target.Category == LogCategories.BepInExFile
                 ? LogCaptureCoordinator.NormalizeLogOutputLine(line)
                 : line;
+
+            if (target.Category == LogCategories.BepInExFile)
+            {
+                var mode = PluginCore.Instance?.CaptureController?.GetLogOutputCaptureMode()
+                    ?? LogOutputCaptureMode.All;
+                if (!LogOutputCaptureFilter.ShouldCapture(normalized, mode))
+                {
+                    return;
+                }
+            }
 
             if (!LogCaptureCoordinator.ShouldWrite(target.Category, "INFO", normalized))
             {

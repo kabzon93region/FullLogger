@@ -81,7 +81,7 @@ namespace FullLogger.Tracing
 
         private static void InventoryOperationPostfix(object operation)
         {
-            if (operation == null)
+            if (operation == null || PluginCore.Instance?.CaptureController?.ShouldTraceInventory != true)
             {
                 return;
             }
@@ -112,7 +112,7 @@ namespace FullLogger.Tracing
 
         private static void RicochetHitPrefix(object info)
         {
-            if (info == null)
+            if (info == null || PluginCore.Instance?.CaptureController?.ShouldTraceRicochet != true)
             {
                 return;
             }

@@ -20,13 +20,19 @@ namespace FullLogger.Hooks
 
         internal void Start()
         {
+            var mode = PluginCore.Instance?.CaptureController?.GetLogOutputCaptureMode()
+                ?? Logging.LogOutputCaptureMode.ErrorsAndKeywords;
+            var bootstrapBytes = mode == Logging.LogOutputCaptureMode.All
+                ? 1024 * 1024
+                : 128 * 1024;
+
             BackgroundLogTailer.Instance.RegisterFile(
                 _path,
                 LogCategories.BepInExFile,
-                bootstrapTailBytes: 1024 * 1024);
+                bootstrapTailBytes: bootstrapBytes);
 
             SessionBootstrap.Write(LogCategories.BepInEx, "INFO",
-                $"LogOutput mirror: background tail ({_path})");
+                $"LogOutput mirror: background tail mode={mode} bootstrap={bootstrapBytes / 1024}KB ({_path})");
         }
 
         public void Dispose()

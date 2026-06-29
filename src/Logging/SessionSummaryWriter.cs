@@ -30,6 +30,8 @@ namespace FullLogger.Logging
 
         private static int _totalErrors;
         private static int _totalWarnings;
+        private static readonly ConcurrentDictionary<string, int> CategoryLineCounts =
+            new ConcurrentDictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         private static DateTime? _sessionStarted;
         private static string _sessionDir;
 
@@ -41,6 +43,11 @@ namespace FullLogger.Logging
 
         internal static void Record(string category, string level, string message)
         {
+            if (!string.IsNullOrEmpty(category))
+            {
+                CategoryLineCounts.AddOrUpdate(category, 1, (_, count) => count + 1);
+            }
+
             if (string.IsNullOrEmpty(message))
             {
                 return;
@@ -88,6 +95,12 @@ namespace FullLogger.Logging
                 sb.AppendLine($"Duration: {(ended - (_sessionStarted ?? ended)).TotalMinutes:F1} min");
                 sb.AppendLine($"Total ERROR: {_totalErrors}");
                 sb.AppendLine($"Total WARN:  {_totalWarnings}");
+                sb.AppendLine();
+                sb.AppendLine("Lines by category (incl. INFO):");
+                foreach (var pair in CategoryLineCounts.OrderByDescending(p => p.Value))
+                {
+                    sb.AppendLine($"  {pair.Key}: {pair.Value}");
+                }
                 sb.AppendLine();
                 sb.AppendLine("By mod (ERROR / WARN):");
 

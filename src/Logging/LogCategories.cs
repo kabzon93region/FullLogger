@@ -15,5 +15,9 @@ namespace FullLogger.Logging
         public const string BepInExFile = "BEPINEX_FILE";
         public const string GameLog = "GAME_LOG";
         public const string GameEvent = "GAME_EVENT";
+        public const string Metabolism = "METABOLISM";
+        public const string FikaNet = "FIKA_NET";
+        public const string Extract = "EXTRACT";
+        public const string Raid = "RAID";
     }
 }
