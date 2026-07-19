@@ -19,3 +19,5 @@ Thumbs.db
 
 # Release artifacts copied locally
 releases/
+
+PUBLISH.md
